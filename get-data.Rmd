@@ -7,6 +7,9 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+The following code was used to download data using the API and write the resulting dataframes into .csv files.
+
+
 ```{r}
 library(httr)
 library(lubridate)
@@ -27,6 +30,7 @@ for(i in 1:241) {
 
 all_claim_reviews <- do.call(rbind, claim_reviews)
 
+write.csv(all_claim_reviews, "all_claim_reviews.csv")
 
 
 organizations <- list()
@@ -131,63 +135,3 @@ all_languages <- do.call(rbind, languages)
 write.csv(all_languages, "all_languages.csv")
 ```
 
-
-Below are a bunch of attempts to creating a text similarity matching function.
-
-```{r}
-
-# step 1: scrape all the articles
-
-# step 2: put them in a corpus
-
-# step 3: get 
-
-require("Snowball")
-require("tm")
-library(readr)
-
-all_claim_reviews <- read_csv("all_claim_reviews.csv")
-my.corpus <- Corpus(VectorSource(all_claim_reviews$claimReviewed))
-
-dtm <- DocumentTermMatrix(my.corpus)
-X <- as.matrix(dtm)
-
-my.df.scale <- scale(X)
-d <- dist(my.df.scale,method="euclidean")
-fit <- hclust(d, method="ward")
-plot(fit)
-```
-
-```{r}
-library(tidyverse)
-
-articles_organisations <- merge(all_news_articles, all_organizations, by.x = "author",
-                                by.y = "@id")
-
-count_by_org <- articles_organisations %>%
-  group_by(tolower(name.y)) %>%
-  count()
-
-articles_organisations %>%
-  filter(n > 50)
-
-```
-
-
-Outline of the shiny dashboard:
-
-* Organisations
-
-- Number of articles
-- Favorite topics
-- Top languages
-
-* Topics
-
-- Where is it popular
-- Who publishes about it
-- 
-
-* Countries
-
-* Languages
