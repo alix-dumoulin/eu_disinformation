@@ -1,0 +1,137 @@
+---
+title: "hackathon"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+The following code was used to download data using the API and write the resulting dataframes into .csv files.
+
+
+```{r}
+library(httr)
+library(lubridate)
+library(jsonlite)
+
+claim_reviews <- list()
+
+for(i in 1:241) {
+  url  <- "https://api.veedoo.io"
+  path1 <- paste0("claim_reviews?page=", i)
+  path_full <- paste0(path1, "&perPage=30")
+  raw.result <- GET(url = url, path = path_full)
+  names(raw.result)
+  this.raw.content <- rawToChar(raw.result$content)
+  this.content <- fromJSON(this.raw.content)
+  claim_reviews[[i]] <- this.content$`hydra:member`
+}
+
+all_claim_reviews <- do.call(rbind, claim_reviews)
+
+write.csv(all_claim_reviews, "all_claim_reviews.csv")
+
+
+organizations <- list()
+
+for(i in 1:241) {
+  print(i)
+  url  <- "https://api.veedoo.io"
+  path1 <- paste0("organizations?page=", i)
+  path_full <- paste0(path1, "&perPage=30")
+  raw.result <- GET(url = url, path = path_full)
+  names(raw.result)
+  this.raw.content <- rawToChar(raw.result$content)
+  this.content <- fromJSON(this.raw.content)
+  organizations[[i]] <- this.content$`hydra:member`
+  organizations[[i]]$image <- NULL
+}
+
+all_organizations <- do.call(rbind, organizations)
+
+write.csv(all_organizations, "all_organisations.csv")
+
+
+news_articles <- list()
+
+for(i in 1:241) {
+  print(i)
+  url  <- "https://api.veedoo.io"
+  path1 <- paste0("news_articles?page=", i)
+  path_full <- paste0(path1, "&perPage=30")
+  raw.result <- GET(url = url, path = path_full)
+  names(raw.result)
+  this.raw.content <- rawToChar(raw.result$content)
+  this.content <- fromJSON(this.raw.content)
+  news_articles[[i]] <- this.content$`hydra:member`
+  news_articles[[i]]$image <- NULL
+}
+
+all_news_articles <- do.call(rbind, news_articles)
+
+write.csv(all_news_articles, "all_news_articles.csv")
+
+
+
+countries <- list()
+
+for(i in 1:241) {
+  print(i)
+  url  <- "https://api.veedoo.io"
+  path1 <- paste0("countries?page=", i)
+  path_full <- paste0(path1, "&perPage=30")
+  raw.result <- GET(url = url, path = path_full)
+  names(raw.result)
+  this.raw.content <- rawToChar(raw.result$content)
+  this.content <- fromJSON(this.raw.content)
+  countries[[i]] <- this.content$`hydra:member`
+  countries[[i]]$image <- NULL
+}
+
+all_countries <- do.call(rbind, countries)
+
+write.csv(all_countries, "all_countries.csv")
+
+
+
+keywords <- list()
+
+for(i in 1:241) {
+  print(i)
+  url  <- "https://api.veedoo.io"
+  path1 <- paste0("keywords?page=", i)
+  path_full <- paste0(path1, "&perPage=30")
+  raw.result <- GET(url = url, path = path_full)
+  names(raw.result)
+  this.raw.content <- rawToChar(raw.result$content)
+  this.content <- fromJSON(this.raw.content)
+  keywords[[i]] <- this.content$`hydra:member`
+  keywords[[i]]$image <- NULL
+}
+
+all_keywords <- do.call(rbind, keywords)
+
+write.csv(all_keywords, "all_keywords.csv")
+
+
+languages <- list()
+
+for(i in 1:241) {
+  print(i)
+  url  <- "https://api.veedoo.io"
+  path1 <- paste0("languages?page=", i)
+  path_full <- paste0(path1, "&perPage=30")
+  raw.result <- GET(url = url, path = path_full)
+  names(raw.result)
+  this.raw.content <- rawToChar(raw.result$content)
+  this.content <- fromJSON(this.raw.content)
+  languages[[i]] <- this.content$`hydra:member`
+  languages[[i]]$image <- NULL
+}
+
+all_languages <- do.call(rbind, languages)
+
+write.csv(all_languages, "all_languages.csv")
+```
+

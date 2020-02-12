@@ -1,4 +1,15 @@
+# CODE FOR THE SHINY DASHBOARD
+# Save this file as a shiny web app in R. If the packages are installed and the data is in the *same* folder, 
+# clicking "run app" should open the app in browser (local).
+
+
+##################################################################################################### 
+### LOADING LIBRARIES AND DATA THAT IS USED TO DISPLAY THE PLOTS AND GENERATE THE SHINY DASHBOARD ###
+##################################################################################################### 
+
+
 #load libraries
+# to install them first, use install.packages("name")
 library(shiny)
 library(readr)
 library(jsonlite)
@@ -12,6 +23,8 @@ library(RColorBrewer)
 library(glue)
 library(lubridate)
 
+
+# get data from the csv files
 all_keywords <- read_csv("all_keywords.csv")
 claims <- jsonlite::read_json("claims.json")
 all_claim_reviews <- read_csv("all_claim_reviews.csv")
@@ -22,7 +35,7 @@ all_countries <- read_csv("all_countries.csv")
 all_languages <- read_csv("all_languages.csv")
 claims_w_emb <- read_csv("claims_w_emb.csv")
 
-
+# set a theme 
 my_theme <- theme(
   panel.background = element_rect(fill = "transparent"), # bg of the panel
   plot.background = element_rect(fill = "transparent", color = NA), # bg of the plot
@@ -32,6 +45,15 @@ my_theme <- theme(
   legend.box.background = element_rect(fill = "transparent") # get rid of legend panel bg
 )
 
+
+
+##################################################################################################### 
+### BELOW ARE ALL THE FUNCTIONS USED TO PROCESS DATA AND GENERATE THE PLOTS USED IN THE DASHBOARD ###
+##################################################################################################### 
+
+
+
+### WORD EMBEDDING ###
 
 d <- claims_w_emb %>%
   arrange(yearPublished)
@@ -131,6 +153,10 @@ plot_word_embedding <- plot_ly(data=d, x=~tfidf_embedding_0, y=~tfidf_embedding_
                          <br>{yearPublished}'),
             hoverinfo="text")
 
+
+
+### TOP TOPICS BY ORGANISATION ###
+
 get_top_topics <- function(organisation) {
   
   all_keywords <- read_csv("all_keywords.csv")
@@ -177,11 +203,14 @@ get_top_topics <- function(organisation) {
     xlab("") +
     ylab("") + my_theme
   
+  # plot
   topics_plotly <- ggplotly(topics_plot)
   topics_plotly
 }
 
 
+
+### LANGUAGE BREAKDOWN BY ORGANISATION ###
 
 get_languages <- function(organisation) {
   all_languages <- read_csv("all_languages.csv")
@@ -209,6 +238,7 @@ get_languages <- function(organisation) {
     bordercolor = "#FFFFFF",
     borderwidth = 2)
   
+  # PLOT
   p <- plot_ly(languages_count_org, labels = ~Language, values = ~Total, type = 'pie') %>%
     layout(paper_bgcolor='rgba(0,0,0,0)',
            plot_bgcolor='rgba(0,0,0,0)') %>%
@@ -216,6 +246,9 @@ get_languages <- function(organisation) {
   
 }
 
+
+
+### TOTAL NUMBER OF CLAIMS BY ORGANISATION ###
 
 get_total_articles <- function(organisation) {
   
@@ -227,8 +260,7 @@ get_total_articles <- function(organisation) {
 
 
 
-# Map
-library(plotly)
+### MAP OF CLAIMS ###
 
 all_countries <- read_csv("all_countries.csv")
 
@@ -367,8 +399,8 @@ time_series_plotly <- ggplotly(time_series_plot)
 
 
 
+### MOST ACTIVE ORGANISATIONS ###
 
-# Most active plot
 all_news_articles <- read_csv("all_news_articles.csv")
 all_organizations <- read_csv("all_organisations.csv")
 
@@ -398,7 +430,7 @@ top10_plotly <- ggplotly(top10_plot)
 
 
 
-
+### WORD CLOUDS ###
 
 get_wordcloud <- function(country) {
   
@@ -434,142 +466,9 @@ get_wordcloud <- function(country) {
 
 
 
-
-
-my_own_theme <- shinyDashboardThemeDIY(
-  
-  ### general
-  appFontFamily = "Arial"
-  ,appFontColor = "rgb(0,0,0)"
-  ,primaryFontColor = "rgb(0,0,0)"
-  ,infoFontColor = "rgb(0,0,0)"
-  ,successFontColor = "rgb(0,0,0)"
-  ,warningFontColor = "rgb(0,0,0)"
-  ,dangerFontColor = "rgb(0,0,0)"
-  ,bodyBackColor = "rgb(248,248,248)"
-  
-  ### header
-  ,logoBackColor = "rgb(23,103,124)"
-  
-  ,headerButtonBackColor = "rgb(238,238,238)"
-  ,headerButtonIconColor = "rgb(75,75,75)"
-  ,headerButtonBackColorHover = "rgb(210,210,210)"
-  ,headerButtonIconColorHover = "rgb(0,0,0)"
-  
-  ,headerBackColor = "rgb(238,238,238)"
-  ,headerBoxShadowColor = "#aaaaaa"
-  ,headerBoxShadowSize = "2px 2px 2px"
-  
-  ### sidebar
-  ,sidebarBackColor = cssGradientThreeColors(
-    direction = "down"
-    ,colorStart = "rgb(20,97,117)"
-    ,colorMiddle = "rgb(56,161,187)"
-    ,colorEnd = "rgb(3,22,56)"
-    ,colorStartPos = 0
-    ,colorMiddlePos = 50
-    ,colorEndPos = 100
-  )
-  ,sidebarPadding = 0
-  
-  ,sidebarMenuBackColor = "transparent"
-  ,sidebarMenuPadding = 0
-  ,sidebarMenuBorderRadius = 0
-  
-  ,sidebarShadowRadius = "3px 5px 5px"
-  ,sidebarShadowColor = "#aaaaaa"
-  
-  ,sidebarUserTextColor = "rgb(255,255,255)"
-  
-  ,sidebarSearchBackColor = "rgb(55,72,80)"
-  ,sidebarSearchIconColor = "rgb(153,153,153)"
-  ,sidebarSearchBorderColor = "rgb(55,72,80)"
-  
-  ,sidebarTabTextColor = "rgb(255,255,255)"
-  ,sidebarTabTextSize = 13
-  ,sidebarTabBorderStyle = "none none solid none"
-  ,sidebarTabBorderColor = "rgb(35,106,135)"
-  ,sidebarTabBorderWidth = 1
-  
-  ,sidebarTabBackColorSelected = cssGradientThreeColors(
-    direction = "right"
-    ,colorStart = "rgba(44,222,235,1)"
-    ,colorMiddle = "rgba(44,222,235,1)"
-    ,colorEnd = "rgba(0,255,213,1)"
-    ,colorStartPos = 0
-    ,colorMiddlePos = 30
-    ,colorEndPos = 100
-  )
-  ,sidebarTabTextColorSelected = "rgb(0,0,0)"
-  ,sidebarTabRadiusSelected = "0px 20px 20px 0px"
-  
-  ,sidebarTabBackColorHover = cssGradientThreeColors(
-    direction = "right"
-    ,colorStart = "rgba(44,222,235,1)"
-    ,colorMiddle = "rgba(44,222,235,1)"
-    ,colorEnd = "rgba(0,255,213,1)"
-    ,colorStartPos = 0
-    ,colorMiddlePos = 30
-    ,colorEndPos = 100
-  )
-  ,sidebarTabTextColorHover = "rgb(50,50,50)"
-  ,sidebarTabBorderStyleHover = "none none solid none"
-  ,sidebarTabBorderColorHover = "rgb(75,126,151)"
-  ,sidebarTabBorderWidthHover = 1
-  ,sidebarTabRadiusHover = "0px 20px 20px 0px"
-  
-  ### boxes
-  ,boxBackColor = "rgb(255,255,255)"
-  ,boxBorderRadius = 5
-  ,boxShadowSize = "0px 1px 1px"
-  ,boxShadowColor = "rgba(0,0,0,.1)"
-  ,boxTitleSize = 16
-  ,boxDefaultColor = "rgb(210,214,220)"
-  ,boxPrimaryColor = "rgba(44,222,235,1)"
-  ,boxInfoColor = "rgb(210,214,220)"
-  ,boxSuccessColor = "rgba(0,255,213,1)"
-  ,boxWarningColor = "rgb(244,156,104)"
-  ,boxDangerColor = "rgb(255,88,55)"
-  
-  ,tabBoxTabColor = "rgb(255,255,255)"
-  ,tabBoxTabTextSize = 14
-  ,tabBoxTabTextColor = "rgb(0,0,0)"
-  ,tabBoxTabTextColorSelected = "rgb(0,0,0)"
-  ,tabBoxBackColor = "rgb(255,255,255)"
-  ,tabBoxHighlightColor = "rgba(44,222,235,1)"
-  ,tabBoxBorderRadius = 5
-  
-  ### inputs
-  ,buttonBackColor = "rgb(245,245,245)"
-  ,buttonTextColor = "rgb(0,0,0)"
-  ,buttonBorderColor = "rgb(200,200,200)"
-  ,buttonBorderRadius = 5
-  
-  ,buttonBackColorHover = "rgb(235,235,235)"
-  ,buttonTextColorHover = "rgb(100,100,100)"
-  ,buttonBorderColorHover = "rgb(200,200,200)"
-  
-  ,textboxBackColor = "rgb(255,255,255)"
-  ,textboxBorderColor = "rgb(200,200,200)"
-  ,textboxBorderRadius = 5
-  ,textboxBackColorSelect = "rgb(245,245,245)"
-  ,textboxBorderColorSelect = "rgb(200,200,200)"
-  
-  ### tables
-  ,tableBackColor = "rgb(255,255,255)"
-  ,tableBorderColor = "rgb(240,240,240)"
-  ,tableBorderTopSize = 1
-  ,tableBorderRowSize = 1
-  
-)
-
-
-
-
-
-
-
-library(shinythemes)
+##################################################################################################### 
+##################### BELOW IS THE UI OF THE APP - AKA WHAT IT DISPLAYS AND HOW #####################
+##################################################################################################### 
 
 
 ui <- dashboardPage(
@@ -587,13 +486,14 @@ ui <- dashboardPage(
   
   
   dashboardBody(
-
+    
     shinyDashboardThemes(
       theme = "grey_light"
     ),
     
+    # some customization to the theme
     tags$head(tags$style(HTML('
-        /* logo */
+                              /* logo */
                               .skin-blue .main-header .logo {
                               background-color: rgb(12, 6, 45);
                               }
@@ -617,16 +517,16 @@ ui <- dashboardPage(
                               padding-bottom: 10px;
                               padding-top: 30px;
                               }
-
+                              
                               .skin-blue .main-header .navbar .sidebar-toggle {
-                                  background: rgb(12, 6, 45);
-                                  color: rgb(247, 102, 0);
+                              background: rgb(12, 6, 45);
+                              color: rgb(247, 102, 0);
                               }
-
-                                .skin-blue .main-header .navbar .sidebar-toggle:hover {
-                                    background-color: #f0f0f0;
-                                }
-
+                              
+                              .skin-blue .main-header .navbar .sidebar-toggle:hover {
+                              background-color: #f0f0f0;
+                              }
+                              
                               /* active selected tab in the sidebarmenu */
                               .skin-blue .main-sidebar .sidebar .sidebar-menu .active a{
                               background-color: #f0f0f0;
@@ -644,13 +544,13 @@ ui <- dashboardPage(
                               background-color: #f0f0f0;
                               border-radius: 20px;
                               }
-
+                              
                               /* toggle button when hovered  */                    
                               .skin-blue .main-header .navbar .sidebar-toggle:hover{
                               background-color: #f0f0f0;
                               }
-
-
+                              
+                              
                               '))
     ),
     
@@ -666,15 +566,15 @@ ui <- dashboardPage(
               br(),
               fluidRow(
                 box("These are static, non-interactive graphs showing you which countries are most target by disinformation, 
-                  which organisations are responsible for the most misleading claims, and the evolution of the number of claims over time.", title = "Tab 1: Overview", width = 4, height = 160),
+                    which organisations are responsible for the most misleading claims, and the evolution of the number of claims over time.", title = "Tab 1: Overview", width = 4, height = 160),
                 box(" Explore the organisations. Pick an organisation from the dropdown or enter the name yourself and see what their
                     how many claims they made, what their favorite topics are, and what languages their produce content in.", title = "Tab 2: Explore the organisations", width = 4, height = 160),
                 box("Look at the main keyword in the claims by country, and understand how claims relate to each other (the closer the claim, the most similar,
                     see the topics cluster and evolve over time), and the popularity of topics over time.", title = "Tab 3: Explore the claims", width = 4, height = 160)
-              ),
+                ),
               h3("Any feedback? Suggestions on new insights and graphs? The dashboard is at a very early development stage, so any idea is welcome.
                  Get in touch via email at: a.dumoulin@lse.ac.uk.", style="text-align: center;")
-    ),
+              ),
       
       
       tabItem(tabName = "overview",
@@ -729,10 +629,15 @@ ui <- dashboardPage(
                 box(plotlyOutput("plot_8"), width = 12, height = 500)
               ) 
       )
+                )
     )
-  )
-)
+      )
 
+
+
+##################################################################################################### 
+#################### BELOW IS THE SERVER SIDE OF THE APP - WHAT GENERATES THE UI ####################
+##################################################################################################### 
 
 server <- function(input, output, session) {
   
@@ -775,4 +680,6 @@ server <- function(input, output, session) {
   })
   
 }
+
+# run app
 shinyApp(ui, server)
