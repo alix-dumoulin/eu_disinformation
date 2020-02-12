@@ -1,0 +1,14 @@
+shiny
+readr
+jsonlite
+tidyverse
+plotly
+shinydashboard
+dashboardthemes
+wordcloud
+tm
+SnowballC
+RColorBrewer
+glue
+lubridate
+countrycode

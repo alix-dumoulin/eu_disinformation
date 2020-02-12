@@ -22,6 +22,7 @@ library(tm, SnowballC)
 library(RColorBrewer)
 library(glue)
 library(lubridate)
+library(countrycode)
 
 
 # get data from the csv files
@@ -287,9 +288,6 @@ df_countries <- merge(countries,
 count_by_country <- df_countries %>%
   group_by(name) %>%
   count()
-
-
-library(countrycode)
 
 count_by_country_weird <- count_by_country
 weird <- c("Africa", 
