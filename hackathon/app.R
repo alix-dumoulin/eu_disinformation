@@ -22,6 +22,17 @@ all_countries <- read_csv("all_countries.csv")
 all_languages <- read_csv("all_languages.csv")
 claims_w_emb <- read_csv("claims_w_emb.csv")
 
+
+my_theme <- theme(
+  panel.background = element_rect(fill = "transparent"), # bg of the panel
+  plot.background = element_rect(fill = "transparent", color = NA), # bg of the plot
+  panel.grid.major = element_blank(), # get rid of major grid
+  panel.grid.minor = element_blank(), # get rid of minor grid
+  legend.background = element_rect(fill = "transparent"), # get rid of legend bg
+  legend.box.background = element_rect(fill = "transparent") # get rid of legend panel bg
+)
+
+
 d <- claims_w_emb %>%
   arrange(yearPublished)
 
@@ -53,7 +64,7 @@ p <- ggplot(keyword_grp, aes(x=month,
   labs(x="Month",
        y="Number of Articles per Keyword/Month",
        title="Changes in Keywords over Time") + 
-  theme_minimal()
+  my_theme
 
 gg <- ggplotly(p)
 
@@ -99,7 +110,9 @@ plot_word_embedding <- plot_ly(data=d, x=~tfidf_embedding_0, y=~tfidf_embedding_
                 opacity = 0.25)
          ),
          xaxis=ax, 
-         yaxis=ax) %>%
+         yaxis=ax, 
+         paper_bgcolor='rgba(0,0,0,0)',
+         plot_bgcolor='rgba(0,0,0,0)') %>%
   add_trace(type="scatter",
             mode="markers",
             marker=list(
@@ -113,13 +126,13 @@ plot_word_embedding <- plot_ly(data=d, x=~tfidf_embedding_0, y=~tfidf_embedding_
               )
             ),
             text = ~glue('<b>Claim:</b>
-    <br>{stringr::str_wrap(claimReviewed)}<br>
-    <b>Year:</b>
-    <br>{yearPublished}'),
-            hoverinfo="text")  
+                         <br>{stringr::str_wrap(claimReviewed)}<br>
+                         <b>Year:</b>
+                         <br>{yearPublished}'),
+            hoverinfo="text")
 
 get_top_topics <- function(organisation) {
-
+  
   all_keywords <- read_csv("all_keywords.csv")
   claims <- jsonlite::read_json("claims.json")
   all_claim_reviews <- read_csv("all_claim_reviews.csv")
@@ -151,19 +164,18 @@ get_top_topics <- function(organisation) {
   keywords_count_org <- org_keywords %>%
     group_by(tolower(name)) %>%
     count()
-
+  
   top_topics <- head(keywords_count_org[order(-keywords_count_org$n),], n = 10)
   colnames(top_topics) <- c("Topic", "Total")
-
+  
   topics_plot <- ggplot(top_topics) +
     geom_bar(aes(y=Total, 
                  x=Topic), 
              stat="identity", 
              fill = "#2062A5") +
     coord_flip() +
-    xlab("Keywords") +
-    ylab("Frequency") +
-    theme_minimal()
+    xlab("") +
+    ylab("") + my_theme
   
   topics_plotly <- ggplotly(topics_plot)
   topics_plotly
@@ -187,15 +199,26 @@ get_languages <- function(organisation) {
   
   colnames(languages_count_org)[1] <- "Language"
   colnames(languages_count_org)[2] <- "Total"
-
-  p <- plot_ly(languages_count_org, labels = ~Language, values = ~Total, type = 'pie')
-  p
+  
+  l <- list(
+    font = list(
+      family = "sans-serif",
+      size = 12,
+      color = "#000"),
+    bgcolor = "#E2E2E2",
+    bordercolor = "#FFFFFF",
+    borderwidth = 2)
+  
+  p <- plot_ly(languages_count_org, labels = ~Language, values = ~Total, type = 'pie') %>%
+    layout(paper_bgcolor='rgba(0,0,0,0)',
+           plot_bgcolor='rgba(0,0,0,0)') %>%
+    layout(legend = l)
   
 }
 
 
 get_total_articles <- function(organisation) {
-
+  
   org <- organisation
   org_id <- all_organizations$`@id`[all_organizations$name==org]
   articles_by_org <- subset(all_news_articles, all_news_articles$author==org_id)
@@ -233,8 +256,8 @@ count_by_country <- df_countries %>%
   group_by(name) %>%
   count()
 
-library(countrycode)
 
+library(countrycode)
 
 count_by_country_weird <- count_by_country
 weird <- c("Africa", 
@@ -294,8 +317,18 @@ m <- list(
   r = 0,
   b = 0,
   t = 0,
-  pad = 4
+  pad = 0
 )
+
+
+l <- list(
+  font = list(
+    family = "sans-serif",
+    size = 12,
+    color = "#000"),
+  bgcolor = "#E2E2E2",
+  bordercolor = "#FFFFFF",
+  borderwidth = 2)
 
 p <- plot_geo(all_the_countries) %>%
   add_trace(
@@ -306,9 +339,7 @@ p <- plot_geo(all_the_countries) %>%
   layout(
     geo = g,
     legend = list(orientation = 'h'), 
-    margin = m
-  )
-
+    margin = m)
 
 
 dates <- c()
@@ -329,8 +360,9 @@ time_series_plot <- ggplot(time_series, aes(x=dates, y=n, group = 1)) +
   geom_line( color="steelblue") + 
   geom_point() +
   xlab("") +
-  scale_x_discrete(breaks=dates[seq(1,length(dates),by=2000)]) +
-  theme_minimal()
+  ylab("") +
+  scale_x_discrete(breaks=dates[seq(1,length(dates),by=2000)]) + my_theme
+
 time_series_plotly <- ggplotly(time_series_plot)
 
 
@@ -359,9 +391,8 @@ top10_plot <- ggplot(top10) +
            stat="identity", 
            fill = "steelblue") +
   coord_flip() +
-  theme_minimal() +
-  xlab("Organisation") +
-  ylab("Number of claims")
+  xlab("") +
+  ylab("") + my_theme
 
 top10_plotly <- ggplotly(top10_plot)
 
@@ -396,32 +427,255 @@ get_wordcloud <- function(country) {
   ## remove punctuation
   corpus <- tm_map(corpus, removePunctuation)
   pal2 <- brewer.pal(8,"Dark2")
-  wordcloud(corpus, max.words = 30, width=20, height=20, min.freq=3, colors = pal2)
+  par(bg="#f8f8f8")
+  wordcloud(corpus, max.words = 30, width=50, height=40, min.freq=3, colors = pal2, scale=c(2,2))
 }
 
 
 
 
 
+
+my_own_theme <- shinyDashboardThemeDIY(
+  
+  ### general
+  appFontFamily = "Arial"
+  ,appFontColor = "rgb(0,0,0)"
+  ,primaryFontColor = "rgb(0,0,0)"
+  ,infoFontColor = "rgb(0,0,0)"
+  ,successFontColor = "rgb(0,0,0)"
+  ,warningFontColor = "rgb(0,0,0)"
+  ,dangerFontColor = "rgb(0,0,0)"
+  ,bodyBackColor = "rgb(248,248,248)"
+  
+  ### header
+  ,logoBackColor = "rgb(23,103,124)"
+  
+  ,headerButtonBackColor = "rgb(238,238,238)"
+  ,headerButtonIconColor = "rgb(75,75,75)"
+  ,headerButtonBackColorHover = "rgb(210,210,210)"
+  ,headerButtonIconColorHover = "rgb(0,0,0)"
+  
+  ,headerBackColor = "rgb(238,238,238)"
+  ,headerBoxShadowColor = "#aaaaaa"
+  ,headerBoxShadowSize = "2px 2px 2px"
+  
+  ### sidebar
+  ,sidebarBackColor = cssGradientThreeColors(
+    direction = "down"
+    ,colorStart = "rgb(20,97,117)"
+    ,colorMiddle = "rgb(56,161,187)"
+    ,colorEnd = "rgb(3,22,56)"
+    ,colorStartPos = 0
+    ,colorMiddlePos = 50
+    ,colorEndPos = 100
+  )
+  ,sidebarPadding = 0
+  
+  ,sidebarMenuBackColor = "transparent"
+  ,sidebarMenuPadding = 0
+  ,sidebarMenuBorderRadius = 0
+  
+  ,sidebarShadowRadius = "3px 5px 5px"
+  ,sidebarShadowColor = "#aaaaaa"
+  
+  ,sidebarUserTextColor = "rgb(255,255,255)"
+  
+  ,sidebarSearchBackColor = "rgb(55,72,80)"
+  ,sidebarSearchIconColor = "rgb(153,153,153)"
+  ,sidebarSearchBorderColor = "rgb(55,72,80)"
+  
+  ,sidebarTabTextColor = "rgb(255,255,255)"
+  ,sidebarTabTextSize = 13
+  ,sidebarTabBorderStyle = "none none solid none"
+  ,sidebarTabBorderColor = "rgb(35,106,135)"
+  ,sidebarTabBorderWidth = 1
+  
+  ,sidebarTabBackColorSelected = cssGradientThreeColors(
+    direction = "right"
+    ,colorStart = "rgba(44,222,235,1)"
+    ,colorMiddle = "rgba(44,222,235,1)"
+    ,colorEnd = "rgba(0,255,213,1)"
+    ,colorStartPos = 0
+    ,colorMiddlePos = 30
+    ,colorEndPos = 100
+  )
+  ,sidebarTabTextColorSelected = "rgb(0,0,0)"
+  ,sidebarTabRadiusSelected = "0px 20px 20px 0px"
+  
+  ,sidebarTabBackColorHover = cssGradientThreeColors(
+    direction = "right"
+    ,colorStart = "rgba(44,222,235,1)"
+    ,colorMiddle = "rgba(44,222,235,1)"
+    ,colorEnd = "rgba(0,255,213,1)"
+    ,colorStartPos = 0
+    ,colorMiddlePos = 30
+    ,colorEndPos = 100
+  )
+  ,sidebarTabTextColorHover = "rgb(50,50,50)"
+  ,sidebarTabBorderStyleHover = "none none solid none"
+  ,sidebarTabBorderColorHover = "rgb(75,126,151)"
+  ,sidebarTabBorderWidthHover = 1
+  ,sidebarTabRadiusHover = "0px 20px 20px 0px"
+  
+  ### boxes
+  ,boxBackColor = "rgb(255,255,255)"
+  ,boxBorderRadius = 5
+  ,boxShadowSize = "0px 1px 1px"
+  ,boxShadowColor = "rgba(0,0,0,.1)"
+  ,boxTitleSize = 16
+  ,boxDefaultColor = "rgb(210,214,220)"
+  ,boxPrimaryColor = "rgba(44,222,235,1)"
+  ,boxInfoColor = "rgb(210,214,220)"
+  ,boxSuccessColor = "rgba(0,255,213,1)"
+  ,boxWarningColor = "rgb(244,156,104)"
+  ,boxDangerColor = "rgb(255,88,55)"
+  
+  ,tabBoxTabColor = "rgb(255,255,255)"
+  ,tabBoxTabTextSize = 14
+  ,tabBoxTabTextColor = "rgb(0,0,0)"
+  ,tabBoxTabTextColorSelected = "rgb(0,0,0)"
+  ,tabBoxBackColor = "rgb(255,255,255)"
+  ,tabBoxHighlightColor = "rgba(44,222,235,1)"
+  ,tabBoxBorderRadius = 5
+  
+  ### inputs
+  ,buttonBackColor = "rgb(245,245,245)"
+  ,buttonTextColor = "rgb(0,0,0)"
+  ,buttonBorderColor = "rgb(200,200,200)"
+  ,buttonBorderRadius = 5
+  
+  ,buttonBackColorHover = "rgb(235,235,235)"
+  ,buttonTextColorHover = "rgb(100,100,100)"
+  ,buttonBorderColorHover = "rgb(200,200,200)"
+  
+  ,textboxBackColor = "rgb(255,255,255)"
+  ,textboxBorderColor = "rgb(200,200,200)"
+  ,textboxBorderRadius = 5
+  ,textboxBackColorSelect = "rgb(245,245,245)"
+  ,textboxBorderColorSelect = "rgb(200,200,200)"
+  
+  ### tables
+  ,tableBackColor = "rgb(255,255,255)"
+  ,tableBorderColor = "rgb(240,240,240)"
+  ,tableBorderTopSize = 1
+  ,tableBorderRowSize = 1
+  
+)
+
+
+
+
+
+
+
+library(shinythemes)
+
+
 ui <- dashboardPage(
   
-  dashboardHeader(title = "Disinfo Explorer"),
+  dashboardHeader(title = "eu vs disinfo"),
   
   dashboardSidebar(
     sidebarMenu(
+      menuItem("Home", tabName = "welcome", icon = icon("home")),
       menuItem("Overview", tabName = "overview", icon = icon("dashboard")),
       menuItem("Explore Organisations", tabName = "home", icon = icon("users")),
-      menuItem("Explore Claims", tabName = "claims", icon = icon("th"))
+      menuItem("Explore Claims", tabName = "claims", icon = icon("project-diagram"))
     )
   ),
   
   
   dashboardBody(
+
     shinyDashboardThemes(
-      theme = "blue_gradient"
+      theme = "grey_light"
+    ),
+    
+    tags$head(tags$style(HTML('
+        /* logo */
+                              .skin-blue .main-header .logo {
+                              background-color: rgb(12, 6, 45);
+                              }
+                              
+                              /* logo when hovered */
+                              .skin-blue .main-header .logo:hover {
+                              background-color: rgb(249, 100, 0);
+                              }
+                              
+                              /* navbar (rest of the header) */
+                              .skin-blue .main-header .navbar {
+                              background-color: rgb(12, 6, 45);
+                              }        
+                              
+                              /* main sidebar */
+                              .skin-blue .main-sidebar {
+                              background-color: rgb(12, 6, 45);
+                              }
+                              
+                              .sidebar {
+                              padding-bottom: 10px;
+                              padding-top: 30px;
+                              }
+
+                              .skin-blue .main-header .navbar .sidebar-toggle {
+                                  background: rgb(12, 6, 45);
+                                  color: rgb(247, 102, 0);
+                              }
+
+                                .skin-blue .main-header .navbar .sidebar-toggle:hover {
+                                    background-color: #f0f0f0;
+                                }
+
+                              /* active selected tab in the sidebarmenu */
+                              .skin-blue .main-sidebar .sidebar .sidebar-menu .active a{
+                              background-color: #f0f0f0;
+                              border-radius: 20px;
+                              }
+                              
+                              /* other links in the sidebarmenu */
+                              .skin-blue .main-sidebar .sidebar .sidebar-menu a{
+                              background-color: rgb(12, 6, 45);
+                              color: #fff;
+                              }
+                              
+                              /* other links in the sidebarmenu when hovered */
+                              .skin-blue .main-sidebar .sidebar .sidebar-menu a:hover{
+                              background-color: #f0f0f0;
+                              border-radius: 20px;
+                              }
+
+                              /* toggle button when hovered  */                    
+                              .skin-blue .main-header .navbar .sidebar-toggle:hover{
+                              background-color: #f0f0f0;
+                              }
+
+
+                              '))
     ),
     
     tabItems(
+      
+      tabItem(tabName = "welcome",
+              div(img(src="logo.png"), style="text-align: center;"),
+              br(),
+              h1("Welcome to the EU vs Disinfo Database Explorer", style="text-align: center;"), 
+              br(),
+              h3("This dashboard lets you explore the database through interactive visualisation. 
+                 Here is a quick overview of what you will find there.", style="text-align: center;"),
+              br(),
+              fluidRow(
+                box("These are static, non-interactive graphs showing you which countries are most target by disinformation, 
+                  which organisations are responsible for the most misleading claims, and the evolution of the number of claims over time.", title = "Tab 1: Overview", width = 4, height = 160),
+                box(" Explore the organisations. Pick an organisation from the dropdown or enter the name yourself and see what their
+                    how many claims they made, what their favorite topics are, and what languages their produce content in.", title = "Tab 2: Explore the organisations", width = 4, height = 160),
+                box("Look at the main keyword in the claims by country, and understand how claims relate to each other (the closer the claim, the most similar,
+                    see the topics cluster and evolve over time), and the popularity of topics over time.", title = "Tab 3: Explore the claims", width = 4, height = 160)
+              ),
+              h3("Any feedback? Suggestions on new insights and graphs? The dashboard is at a very early development stage, so any idea is welcome.
+                 Get in touch via email at: a.dumoulin@lse.ac.uk.", style="text-align: center;")
+    ),
+      
       
       tabItem(tabName = "overview",
               fluidRow(
@@ -432,7 +686,7 @@ ui <- dashboardPage(
                 box(plotlyOutput("plot_3"), title = "Number of articles by country target", width = 12, height = 500)
               ),
               fluidRow(
-                box(plotlyOutput("plot_4"), title = "Most active organisation", width = 6, height = 500),
+                box(plotlyOutput("plot_4"), title = "Most active organisation by number of claims", width = 6, height = 500),
                 box(plotlyOutput("plot_5"), title = "Articles published over time", width = 6, height = 500)
               )
       ),
@@ -445,12 +699,12 @@ ui <- dashboardPage(
                 box(selectInput(inputId = "var", 
                                 label = "Choose a variable to display",
                                 choices = unique(all_organizations$name[all_organizations$`@id` %in% all_news_articles$author]),
-                                selected = "Sputnik Arabic"), width = 6, height = 100), 
+                                selected = "rt.com"), width = 6, height = 100), 
                 box(htmlOutput("articles"), width = 6, height = 100)
               ),
               
               fluidRow(
-                box(plotlyOutput("plot"), title = "Top Keywords", width = 6, height = 500),
+                box(plotlyOutput("plot"), title = "Frequency of the top keywords used by the organisation", width = 6, height = 500),
                 box(plotlyOutput("plot_2"), title = "Languages of the articles", width = 6, height = 500)
               )
       ),
@@ -458,13 +712,13 @@ ui <- dashboardPage(
       tabItem(tabName = "claims",
               
               fluidRow(
-                h1("Explore the claims made", style="text-align: center;"), 
+                h1("Explore the claims", style="text-align: center;"), 
                 br(),
                 box(selectInput(inputId = "country", 
                                 label = "Choose a country to display",
                                 choices = all_countries$name,
                                 selected = "Russia"), 
-                    plotOutput("plot_6"), title = "Most common terms", width = 12, height = 500)
+                    plotOutput("plot_6"), title = "Most common terms in the claims", width = 12, height = 550)
               ),
               
               fluidRow(
