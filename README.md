@@ -18,11 +18,28 @@ The database contains over 7000 disinformation cases and debunks. The data was c
 
 * An explorer to better understand the data and get the big picture. Includes searching organisations to better understand what their share, when to whom etc.
 
+## Implementation
 
-## Implementation (work in progress)
+The Shiny dashboard is available here: https://alixdumoulin.shinyapps.io/disinformation_hackathon/
 
-For now, an early version with initial analysis of a Shiny Dashboard is available here: https://alixdumoulin.shinyapps.io/disinformation_hackathon/
+The code is in the `shiny-dashboard` repo and can be downloaded. 
 
-The corresponding code is in the hackathon folder in the repo. Instructions on how to download and use the code will be available soon.
+## How to run the shiny locally?
 
-![a_tab_from_dashboard](https://github.com/alix-dumoulin/eu_disinformation/blob/master/dashboard_pic.jpeg)
+1) Clone the `shiny-dashboard` repo
+
+Make sure all the datafiles and the app.R remain in the same folder. 
+
+2) Download all packages specified in the `requirement.txt`file
+
+```{r}
+install.packages("package")
+```
+
+3) Run the code
+
+Either press the `Run App` button on the RStudio interface or run the whole file. The last command runs the shiny app in your browser locally:
+
+```{r}
+shinyApp(ui, server)
+```
